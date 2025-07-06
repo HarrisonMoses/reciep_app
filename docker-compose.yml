@@ -10,3 +10,25 @@ services:
       - ./app:/app
     command: >
       sh -c "python manage.py runserver 0.0.0.0:8000"
+    environment:
+      - DJANGO_SETTINGS_MODULE=app.settings.dev
+      - DB_USER=devuser
+      - DB_PASSWORD=password
+      - DB_NAME=devdb
+      - DB_HOST=db
+    depends_on:
+      - db
+
+  db:
+    image: postgres:17-alpine3.22
+    environment:
+      - POSTGRES_USER=devuser
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=devdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - dev-db-data:/var/lib/postgresql/data
+
+volumes:
+  dev-db-data:
