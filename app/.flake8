@@ -1,0 +1,2 @@
+[flake8]
+exclude = .git,__pycache__,node_modules,venv,.venv,.env,*.pyc,*.pyo,*.pyd,*.db,*.sqlite3,*.log, migrations,staticfiles,media,*.egg-info,*.eggs,.tox,.coverage,.pytest_cache,.mypy_cache,.idea,.vscode,settings.py,local_settings.py,*.swp,*.swo,*.DS_Store,.env.local,.env.development,.env.production,.env.test
