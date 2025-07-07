@@ -3,7 +3,7 @@ Database models
 """
 from django.db import models
 from django.contrib.auth.models import (
-    AbstractUser,
+    AbstractBaseUser,
     BaseUserManager,
     PermissionsMixin,
 )
@@ -32,7 +32,7 @@ class UserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 
-class user(AbstractUser,PermissionsMixin):
+class user(AbstractBaseUser,PermissionsMixin):
     """Custom user model that supports email instead of username."""
     email = models.EmailField( max_length=225,unique=True)
     name = models.CharField(max_length=225)
@@ -40,7 +40,7 @@ class user(AbstractUser,PermissionsMixin):
     is_staff = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
+    REQUIRED_FIELDS = ['username', 'name']
 
     objects = UserManager()
     def __str__(self):
