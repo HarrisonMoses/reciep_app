@@ -32,7 +32,7 @@ class UserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 
-class user(AbstractBaseUser,PermissionsMixin):
+class User(AbstractBaseUser,PermissionsMixin):
     """Custom user model that supports email instead of username."""
     email = models.EmailField( max_length=225,unique=True)
     name = models.CharField(max_length=225)
@@ -40,7 +40,7 @@ class user(AbstractBaseUser,PermissionsMixin):
     is_staff = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'email'
-    
+
     objects = UserManager()
     def __str__(self):
         return self.email

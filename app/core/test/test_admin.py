@@ -8,7 +8,6 @@ from django.test import Client as client
 class UserAdminTests(TestCase):
     """Tests for the custom UserAdmin."""
 
-
     def setUp(self):
         """Set up a user and a superuser."""
         self.client = client()
