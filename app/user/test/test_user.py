@@ -10,6 +10,7 @@ from rest_framework import status
 
 CREATE_USER_URL = reverse('user:create')
 CREATE_TOKEN_URL = reverse('user:token')
+ME_URL = reverse('user:me')
 
 def create_user(**params):
     """Create and return a user with given parameters."""
@@ -92,3 +93,39 @@ class PublicUserAPITests(TestCase):
         res = self.client.post(CREATE_TOKEN_URL, payload)
         self.assertNotIn('token', res.data)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class PrivateUserAPITests(TestCase):
+    """functions to test authorised user"""
+    def setUp(self):
+        self.client = APIClient()
+        self.user = {
+            'email': 'test@example.com',
+            'name':'test',
+            'password':'password'
+        }
+        self.client.force_authenticate(user=create_user(**self.user))
+
+    def test_get_profile_of_authenticated_user(self):
+        """Retrieve details of the authenticated user."""
+        res =  self.client.get(ME_URL)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_post_not_allowed(self):
+        """Test that POST is not allowed on the me endpoint."""
+        res = self.client.post(ME_URL, {})
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_update_user_profile(self):
+        """Test updating the user profile for authenticated user."""
+        payload = {
+            'name': 'new name',
+            'password': 'newpassword123'
+        }
+        res = self.client.patch(ME_URL, payload)
+        self.user['name'] = payload['name']
+        self.user['password'] = payload['password']
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        user = get_user_model().objects.get(email=self.user['email'])
+        self.assertTrue(user.check_password(payload['password']))
+        self.assertEqual(user.name, payload['name'])
