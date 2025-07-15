@@ -1,8 +1,13 @@
 """
 Tests for models
 """
+from decimal import Decimal
 from django.test import TestCase
+from rest_framework import status
 from django.contrib.auth import get_user_model
+
+from core import models
+
 
 class ModelTests(TestCase):
     """Test models."""
@@ -35,3 +40,19 @@ class ModelTests(TestCase):
         )
         self.assertEqual(User.email, email)
         self.assertTrue(User.is_staff)
+
+    def test_create_recipe(self):
+            """Test creating a recipe is successful."""
+            user = get_user_model().objects.create_user(
+                email='test@example.com',
+                password='testpass123')
+            payload = {
+                'title': 'Test Recipe',
+                'time_minutes': 30,
+                'price': Decimal('5.99'),
+                'description': 'Test description',
+                'link': 'http://example.com/test-recipe'
+            }
+            recipe = models.Recipe.objects.create(user=user, **payload)
+            self.assertEqual(recipe.title, payload['title'])
+            self.assertEqual(recipe.user, user)
