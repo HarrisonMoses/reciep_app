@@ -30,7 +30,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         """Return the appropriate serializer class based on action."""
         if self.action == 'list' or self.action == 'retrieve':
-            return RecipeDetailSerializer
+            return RecipeSerializer
         return self.serializer_class
 
     # @action(detail=True, methods=['get'])
