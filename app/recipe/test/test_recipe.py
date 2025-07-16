@@ -1,6 +1,8 @@
 """
 Tests for the recipe APIs
 """
+from decimal import Decimal
+
 from django.urls import reverse
 from django.test import TestCase
 from rest_framework.test import APIClient
@@ -15,7 +17,7 @@ def create_recipe(user, **params):
     recipe ={
         'title': 'Sample Recipe',
         'time_minutes': 10,
-        'price': 5.00,
+        'price': Decimal('5.00'),
         'description': 'Sample description',
         'link': 'http://example.com/recipe'
     }
@@ -68,7 +70,7 @@ class PrivateRecipeAPITests(TestCase):
         update_payload = {
             'title': 'Updated Recipe',
             'time_minutes': 20,
-            'price': 10.00,
+            'price': Decimal(10.00),
             'description': 'Updated description',
             'link': 'http://example.com/updated-recipe'
         }
@@ -93,3 +95,67 @@ class PrivateRecipeAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
+
+    def test_delete_recipe(self):
+        """Delete a specific recipe."""
+        recipe = create_recipe(user=self.user)
+        response = self.client.post(CREATE_RECIPE_URL, recipe)
+
+        recipe_id = response.data['id']
+        delete_url = reverse('recipe:recipe-detail', args=[recipe_id])
+
+        res = self.client.delete(delete_url)
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+
+        # Verify the recipe is deleted
+        self.assertFalse(models.Recipe.objects.filter(id=recipe_id).exists())
+
+    def test_create_recipe_with_tags(self):
+        """Test creating a recipe with tags."""
+        payload = {
+            'title': 'Sample Recipe',
+            'time_minutes': 10,
+            'price': Decimal('5.00'),
+            'description': 'Sample description',
+            'link': 'http://example.com/recipe',
+            'tags': [{'name': 'Breakfast'}, {'name': 'Vegan'}]
+        }
+
+        res = self.client.post(CREATE_RECIPE_URL, payload, format='json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        print(res.data)
+
+        recipe = models.Recipe.objects.get(id=res.data['id'])
+        self.assertEqual(recipe.tags.count(), 2)
+
+        # Check that the tags were created with the correct names
+        tag_names = [tag.name for tag in recipe.tags.all()]
+        self.assertIn('Breakfast', tag_names)
+        self.assertIn('Vegan', tag_names)
+
+    def test_update_recipe_with_tags(self):
+        """Test updating a recipe with tags."""
+        payload = create_recipe(user=self.user)
+        res = self.client.post(CREATE_RECIPE_URL, payload)
+        recipe_id = res.data['id']
+
+        update_payload = {
+            'title': 'Updated Recipe',
+            'time_minutes': 20,
+            'price': Decimal(10.00),
+            'description': 'Updated description',
+            'link': 'http://example.com/updated-recipe',
+            'tags': [{'name': 'Dinner'}, {'name': 'Healthy'}]
+        }
+
+        update_url = reverse('recipe:recipe-detail', args=[recipe_id])
+        
+        res = self.client.put(update_url, update_payload, format='json')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        recipe = models.Recipe.objects.get(id=recipe_id)
+        self.assertEqual(recipe.tags.count(), 2)
+
+        tag_names = [tag.name for tag in recipe.tags.all()]
+        self.assertIn('Dinner', tag_names)
+        self.assertIn('Healthy', tag_names)
