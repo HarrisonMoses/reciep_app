@@ -53,6 +53,7 @@ class Recipe(models.Model):
     time_minutes = models.IntegerField()
     price = models.DecimalField(max_digits=5, decimal_places=2)
     description = models.TextField(blank=True)
+    tags = models.ManyToManyField('Tag', blank=True)
     link = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
@@ -60,3 +61,15 @@ class Recipe(models.Model):
 
     class Meta:
         ordering = ['-time_minutes']
+
+
+class Tag(models.Model):
+    """Tag model for recipes."""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']

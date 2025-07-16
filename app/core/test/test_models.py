@@ -6,7 +6,10 @@ from django.test import TestCase
 from rest_framework import status
 from django.contrib.auth import get_user_model
 
-from core import models
+from core.models import (
+    Recipe,
+    Tag
+)
 
 
 class ModelTests(TestCase):
@@ -45,7 +48,8 @@ class ModelTests(TestCase):
             """Test creating a recipe is successful."""
             user = get_user_model().objects.create_user(
                 email='test@example.com',
-                password='testpass123')
+                password='testpass123'
+                )
             payload = {
                 'title': 'Test Recipe',
                 'time_minutes': 30,
@@ -53,6 +57,17 @@ class ModelTests(TestCase):
                 'description': 'Test description',
                 'link': 'http://example.com/test-recipe'
             }
-            recipe = models.Recipe.objects.create(user=user, **payload)
+            recipe = Recipe.objects.create(user=user, **payload)
             self.assertEqual(recipe.title, payload['title'])
             self.assertEqual(recipe.user, user)
+
+    def test_create_tag(self):
+        """Test creating a tag is successful."""
+        user = get_user_model().objects.create_user(
+                email='test2@example.com',
+                password='testpass123')
+        res = Tag.objects.create(
+            user=user,
+            name='Test Tag'
+        )
+        self.assertEqual(res.name, 'Test Tag')
