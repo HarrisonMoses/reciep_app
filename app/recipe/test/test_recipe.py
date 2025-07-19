@@ -123,7 +123,6 @@ class PrivateRecipeAPITests(TestCase):
 
         res = self.client.post(CREATE_RECIPE_URL, payload, format='json')
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
-        print(res.data)
 
         recipe = models.Recipe.objects.get(id=res.data['id'])
         self.assertEqual(recipe.tags.count(), 2)
@@ -149,7 +148,7 @@ class PrivateRecipeAPITests(TestCase):
         }
 
         update_url = reverse('recipe:recipe-detail', args=[recipe_id])
-        
+
         res = self.client.put(update_url, update_payload, format='json')
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
@@ -159,3 +158,24 @@ class PrivateRecipeAPITests(TestCase):
         tag_names = [tag.name for tag in recipe.tags.all()]
         self.assertIn('Dinner', tag_names)
         self.assertIn('Healthy', tag_names)
+
+    def test_create_recipe_with_ingredients(self):
+        """Test creating a recipe with ingredients."""
+        payload = {
+            'title': 'Sample Recipe',
+            'time_minutes': 10,
+            'price': Decimal('5.00'),
+            'description': 'Sample description',
+            'link': 'http://example.com/recipe',
+            'ingredients': [{'name': 'Eggs'}, {'name': 'Milk'}]
+        }
+
+        res = self.client.post(CREATE_RECIPE_URL, payload, format='json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        recipe = models.Recipe.objects.get(id=res.data['id'])
+        self.assertEqual(recipe.ingredients.count(), 2)
+
+        ingredient_names = [ingredient.name for ingredient in recipe.ingredients.all()]
+        self.assertIn('Eggs', ingredient_names)
+        self.assertIn('Milk', ingredient_names)
