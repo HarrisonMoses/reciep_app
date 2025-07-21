@@ -2,6 +2,9 @@
 Tests for the recipe APIs
 """
 from decimal import Decimal
+import tempfile
+import os
+from PIL import Image
 
 from django.urls import reverse
 from django.test import TestCase
@@ -179,3 +182,54 @@ class PrivateRecipeAPITests(TestCase):
         ingredient_names = [ingredient.name for ingredient in recipe.ingredients.all()]
         self.assertIn('Eggs', ingredient_names)
         self.assertIn('Milk', ingredient_names)
+
+class TestRecipeImageUpload(TestCase):
+    """Test uploading images to recipes."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = models.User.objects.create_user(
+            email="test@example.com",
+            password="testpass123",
+        )
+        self.client.force_authenticate(user=self.user)
+        self.recipe = None
+
+    def tearDown(self):
+        if self.recipe and hasattr(self.recipe, 'image') and self.recipe.image:
+            self.recipe.image.delete()
+
+    def test_upload_image_to_recipe(self):
+        """Test uploading an image to a recipe."""
+        payload = create_recipe(user=self.user)
+        res = self.client.post(CREATE_RECIPE_URL, payload)
+        recipe_id = res.data['id']
+
+        url = reverse('recipe:recipe-upload-image', args=[recipe_id])
+        with tempfile.NamedTemporaryFile(suffix='.jpg') as image_file:
+            img = Image.new('RGB', (100, 100))
+            img.save(image_file, format='JPEG')
+            image_file.seek(0)
+            payload = {'image': image_file}
+            res = self.client.post(url, payload, format='multipart')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.recipe = models.Recipe.objects.get(id=recipe_id)
+        self.recipe.refresh_from_db()
+        self.assertTrue(os.path.exists(self.recipe.image.path))
+        self.assertIn('image', res.data)
+
+    def test_upload_image_to_recipe_invalid(self):
+        """Test uploading an invalid image to a recipe."""
+        payload = create_recipe(user=self.user)
+        res = self.client.post(CREATE_RECIPE_URL, payload)
+        recipe_id = res.data['id']
+
+        payload = {'image': 'not_an_image.txt'}
+
+        url = reverse('recipe:recipe-upload-image', args=[recipe_id])
+        res = self.client.post(url, payload, format='multipart')
+
+        self.recipe = models.Recipe.objects.get(id=recipe_id)
+        self.recipe.refresh_from_db()
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)

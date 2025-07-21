@@ -2,7 +2,10 @@
 Views for the recipe APIs. 
 '''
 from django.shortcuts import get_object_or_404
-from rest_framework import (viewsets, status, mixins)
+
+from rest_framework import (viewsets, status, mixins, status)
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -12,7 +15,8 @@ from core.models import (Recipe, Tag, Ingredient)
 from recipe.serializers import( RecipeSerializer,
                                 RecipeDetailSerializer,
                                 TagSerializer,
-                                IngredientSerializer
+                                IngredientSerializer,
+                                RecipeImageSerializer
                             )
 
 
@@ -36,9 +40,23 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Return the appropriate serializer class based on action."""
         if self.action == 'list':
             return RecipeSerializer
+        elif self.action == 'upload_image':
+            return RecipeImageSerializer
         return self.serializer_class
 
-    # @action(detail=True, methods=['get'])
+    @action(methods=['POST'], detail = True, url_path ='upload_image')
+    def upload_image(self, request, pk=None):
+        """Upload an image to a recipe."""
+        recipe = self.get_object()
+        serializer = self.get_serializer(recipe, data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # @action(detail=True, methods=['POST'])
     # def retrieve(self, request, pk=None):
     #     """Retrieve a specific recipe."""
     #     recipe = get_object_or_404(Recipe, pk=pk, user=request.user)
