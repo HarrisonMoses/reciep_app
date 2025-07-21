@@ -8,6 +8,7 @@ services:
       - "8000:8000"
     volumes:
       - ./app:/app
+      - vol-files:/app/vol/files
     command: >
       sh -c "
       python manage.py db_wait &&
@@ -35,3 +36,4 @@ services:
 
 volumes:
   dev-db-data:
+  vol-files:
