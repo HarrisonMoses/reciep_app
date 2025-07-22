@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.authentication import TokenAuthentication
+from rest_framework import DjangoFilterBackend
 
 from core.models import (Recipe, Tag, Ingredient)
 from recipe.serializers import( RecipeSerializer,
@@ -27,6 +28,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['tags', 'ingredients']
 
     def get_queryset(self):
         """Retrieve the recipes for the authenticated user."""
