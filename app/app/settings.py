@@ -37,11 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'core',
-    'user',
     'rest_framework',
     'rest_framework.authtoken',
     'drf_spectacular',
+    'django_filters',
+    'core',
+    'user',
     'recipe',
 ]
 
@@ -149,5 +150,5 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     'COMPONENT_SPLIT_REQUEST': True,
-    
+
 }
